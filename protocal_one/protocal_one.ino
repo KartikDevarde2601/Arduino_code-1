@@ -14,6 +14,11 @@ int datapoints = 0;
 const String INVALIDACK = "404:InvalidCommand:\n";
 const String ADCOMACK = "100:CommandReceived:\n";
 
+struct DecodedData {
+    String command;
+    String payload;
+};
+
 void setup() {
   Serial.begin(9600);
   myBluetooth.begin(9600);
@@ -47,11 +52,11 @@ void readBluetoothData() {
   while (myBluetooth.available()) {
     String receivedData = myBluetooth.readStringUntil('\n');
 
-    String *androidData = decodeReceivedMsg(receivedData);
+    DecodedData androidData = decodeReceivedMsg(receivedData);
     
-    Serial.println("Command: " + androidData[0] + ", Payload: " + androidData[1]);
+    Serial.println("Command: " + androidData.command + ", Payload: " + androidData.payload);
 
-    handleCommand(androidData[0], androidData[1]);
+    handleCommand(androidData.command, androidData.payload);
   }
 }
 
@@ -66,12 +71,12 @@ String encodeSendMsg(String msgCode, String msgPayload){
 }
 
 // received msg format:: MSGCODE:PAYLOAD:END
-String * decodeReceivedMsg(String recmsg){
+DecodedData decodeReceivedMsg(String recmsg){
     String command = recmsg.substring(0, recmsg.indexOf(':'));
     String payload = recmsg.substring(recmsg.indexOf(':') + 1);
     Serial.print("Command: " + command + ", Payload: " + payload);
-    String data[2]= {command, payload};
-    return data;
+    
+    return {command,payload};
 }
 
 void sendSensorData(float freq,int datapoints, int senspos1, int senspos2){
